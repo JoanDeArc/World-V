@@ -111,7 +111,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 618e63320aa49ed41ba5b69b34fd420a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Name: Carrot
+  Name: Flaming carrot
   Id: 0
   Tag: 0
+  Icon: {fileID: 21300000, guid: 46da1608c1108ae4986edba4e4421d07, type: 3}
+  About: A very hot orange vegetable.
   FillAmount: 50

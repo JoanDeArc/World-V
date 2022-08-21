@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.EventSystems;
@@ -9,7 +11,7 @@ public class Player : MonoBehaviour
 
     public Companimon Companimon;
 
-    private Backpack backpack;
+    public Inventory inventory;
     
 
     private CharacterController controller;
@@ -17,23 +19,30 @@ public class Player : MonoBehaviour
     public float MovementSpeed = 4;
 
     public bool MovementDisabled;
+    public bool InputDisabled;
     public bool IsInDialogue;
 
+    public static Player instance;
 
     // Start is called before the first frame update
     void Start()
     {
         DontDestroyOnLoad(this);
 
-        backpack = new Backpack(10);
 
         controller = gameObject.GetComponent<CharacterController>();
         animator = gameObject.GetComponent<Animator>();
+
+        if (instance == null)
+            instance = this;
+
+        else if (instance != this)
+            Destroy(gameObject);
     }
 
 
     // Update is called once per frame
-    void Update()
+    async void Update()
     {
         if (!MovementDisabled)
         {
@@ -43,7 +52,7 @@ public class Player : MonoBehaviour
         {
             HandleDialogue();
         }
-        else
+        else if (!InputDisabled)
         {
             if (Input.GetButtonDown("Submit"))
             {
@@ -57,11 +66,14 @@ public class Player : MonoBehaviour
                             MovementDisabled = true;
                             animator.SetBool("IsMoving", false);
                             c.gameObject.GetComponent<Interactable>().Trigger();
+                            break;
                         }
                         else if (c.gameObject.tag == "Item")
                         {
                             Item item = c.gameObject.GetComponent<Item>();
-                            if (backpack.TryAddItem(item))
+                            ItemData itemData = ScriptableObject.CreateInstance<ItemData>();
+                            itemData.Init(item.GetData());
+                            if (inventory.TryAddItem(itemData))
                             {
                                 FindObjectOfType<DialogueManager>().StartDialogue(item, true);
                                 Destroy(c.gameObject);
@@ -70,23 +82,16 @@ public class Player : MonoBehaviour
                             {
                                 FindObjectOfType<DialogueManager>().StartDialogue(item, false);
                             }
+                            break;
                         }
                         else if (c.gameObject.tag == "Companimon")
                         {
                             // Bring up companimon interract menu
 
                             // For now, just feed
-                            Item item = backpack.HasItem(ItemTag.edible);
-                            //Debug.Log(item.name);
-                            if (Companimon.Feed(item))
-                            {
-                                backpack.RemoveItem(item);
-                                Debug.Log("Yummy");
-                            }
-                            else
-                            {
-                                Debug.Log("Angry mon!");
-                            }
+                            await PauseForAction(FeedChooseItem());
+
+                            break;
                         }
                     }
                 }
@@ -94,16 +99,44 @@ public class Player : MonoBehaviour
 
             else if (Input.GetButtonDown("Inventory"))
             {
-                List<Item> items = backpack.GetItems();
-                Debug.Log("Inventory items:");
-                foreach (Item item in items)
-                    Debug.Log(item.Name);
+                await PauseForAction(inventory.Open());
             }
             else if (Input.GetButtonDown("Menu")) // currently just shows companimon stats
             {
                 Debug.Log("HP: " + Companimon.HP + "  MP: " + Companimon.MP + "  Attack: " + Companimon.Attack + "  Defence: " + Companimon.Defence + "  Speed: " + Companimon.Speed + "  Attunements F/W/A/E: " + Companimon.AttunementFire + "/" + Companimon.AttunementWater + "/" + Companimon.AttunementAir + "/" + Companimon.AttunementEarth);
             }
             
+        }
+    }
+
+    async Task PauseForAction(Task methodName)
+    {
+        MovementDisabled = true;
+        InputDisabled = true;
+
+        await methodName;
+
+        MovementDisabled = false;
+        InputDisabled = false;
+    }
+
+    async Task FeedChooseItem()
+    {
+        ItemData itemData = await inventory.OpenChooseType(typeof(Edible));
+
+        Feed(itemData);
+    }
+
+    public void Feed(ItemData itemData)
+    {
+        if (Companimon.Feed(itemData))
+        {
+            inventory.RemoveItem(itemData);
+            Debug.Log("Yummy");
+        }
+        else
+        {
+            Debug.Log("Angry mon!");
         }
     }
 

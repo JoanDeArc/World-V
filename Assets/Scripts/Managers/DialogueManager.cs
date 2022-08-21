@@ -37,6 +37,13 @@ public class DialogueManager : MonoBehaviour
     }
 
 
+    public void StartDialogueAbout(ItemData item)
+    {
+        dialoguePickup.Sentences[0] = new SentenceWrapper(("",  item.About));
+
+        StartDialogue(dialoguePickup);
+    }
+
     public void StartDialogue(Item item, bool couldPickup)
     {
         if (couldPickup)
@@ -144,6 +151,7 @@ public class DialogueManager : MonoBehaviour
 
     IEnumerator TypeSentence (string sentence)
     {
+        Debug.Log(sentence);
         TypingSound.Play();
         DialogueText.text = "";
         foreach (char letter in sentence.ToCharArray())
