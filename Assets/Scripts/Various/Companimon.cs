@@ -25,6 +25,10 @@ public class Companimon : MonoBehaviour
     private NavMeshAgent agent;
     private NavAgentAnimationControl animationControl;
 
+    public CompanimonThoughtHandler ThoughtHandler;
+    private Thought LastThought;
+    private float TimeLastThought;
+
     public static Companimon instance;
 
 
@@ -56,7 +60,35 @@ public class Companimon : MonoBehaviour
         }
 
         Hunger -= Metabolism * Time.deltaTime;
+
+        HandleThoughts();
+
         TemporaryHungerMeter.text = "Hunger: " + Hunger.ToString("0");
+    }
+
+    private void HandleThoughts()
+    {
+        if (TimeLastThought > Time.time - 10)
+            return;
+
+        List<Thought> thoughts = new List<Thought>();
+
+        if (Hunger < 90)
+            thoughts.Add(Thought.Hungry);
+
+        thoughts.Add(Thought.Sad);
+
+        if (thoughts.Count == 0)
+            return;
+
+        if (thoughts.Count > 1)
+            thoughts.Remove(LastThought);
+
+        int choice = Random.Range(0, thoughts.Count);
+        LastThought = thoughts[choice];
+        ThoughtHandler.ShowThought(thoughts[choice]);
+
+        TimeLastThought = Time.time;
     }
 
     public bool Feed(ItemData item)
