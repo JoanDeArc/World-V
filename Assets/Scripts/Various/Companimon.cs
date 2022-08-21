@@ -25,6 +25,8 @@ public class Companimon : MonoBehaviour
     private NavMeshAgent agent;
     private NavAgentAnimationControl animationControl;
 
+    public static Companimon instance;
+
 
     // Start is called before the first frame update
     void Start()
@@ -33,6 +35,8 @@ public class Companimon : MonoBehaviour
 
         agent = GetComponent<NavMeshAgent>();
         animationControl = GetComponent<NavAgentAnimationControl>();
+
+        instance = this;
     }
 
     // Update is called once per frame
@@ -55,14 +59,14 @@ public class Companimon : MonoBehaviour
         TemporaryHungerMeter.text = "Hunger: " + Hunger.ToString("0");
     }
 
-    public bool Feed(Item item)
-    {
+    public bool Feed(ItemData item)
+    {    
         if (item == null || item.Tag != ItemTag.edible)
             return false;
 
         // Play eat animation
 
-        Hunger += (item as Edible).FillAmount;
+        Hunger += item.FillAmount;
         return true;
     }
 
