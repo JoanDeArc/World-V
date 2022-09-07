@@ -18,9 +18,9 @@ public class NavAgentAnimationControl : MonoBehaviour
     public void Animate()
     {
         if (agent.velocity.magnitude > 0)
-            animator.SetBool("IsMoving", true);
+            animator.SetBool("isMoving", true);
         else
-            animator.SetBool("IsMoving", false);
+            animator.SetBool("isMoving", false);
 
 
         if (agent.velocity != Vector3.zero)
@@ -29,7 +29,9 @@ public class NavAgentAnimationControl : MonoBehaviour
 
     public void LookTowards(Vector3 target)
     {
+        agent.isStopped = true;
         agent.velocity = Vector3.zero;
         gameObject.transform.LookAt(target);
+        agent.isStopped = false;
     }
 }

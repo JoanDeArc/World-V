@@ -5,7 +5,6 @@ using UnityEngine.AI;
 using UnityEngine.UI;
 
 public enum CombatPersonality { aggressive, tester }
-public enum CombatState { none, idle, chase, runAway, keepDistance, random, attackClose, attackRange };
 
 public class CombatAI : MonoBehaviour
 {

@@ -11,10 +11,15 @@ public class Projectile : MonoBehaviour
 
     private Vector3 startPos;
 
+    private float timeCreated;
+    private float invulnerableTime = 0.1f;
+
     // Start is called before the first frame update
     void Start()
     {
         startPos = transform.position;
+
+        timeCreated = Time.time;
     }
 
     public void SetValues(int damage, float speed, float range)
@@ -39,11 +44,16 @@ public class Projectile : MonoBehaviour
         if (other.tag == "Projectile")
             return;
 
-        CombatAI combatAI = other.gameObject.GetComponent<CombatAI>();
-        if (combatAI != null)
+        BattleAINew battleAI = other.gameObject.GetComponent<BattleAINew>();
+        if (battleAI != null && (timeCreated + invulnerableTime) < Time.time)
         {
-            combatAI.TakeDamage(damage);
+            if (battleAI.currentState == CombatState.defend && battleAI.ActiveDefenceType == DefenceType.evade)
+            {
+                if (Random.value > battleAI.EvadeChance)
+                    return;
+            }
+            battleAI.TakeDamage(damage);
+            Destroy(gameObject);
         }
-        Destroy(gameObject);
     }
 }
